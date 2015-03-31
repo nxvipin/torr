@@ -1,5 +1,5 @@
 -module(bencode).
--export([decode/1]).
+-export([decode/1, encode/1]).
 
 -type bint() :: integer().
 -type bstr() :: binary().
@@ -62,3 +62,45 @@ decode_string(Data) ->
             {Str, Tail};
         _ -> {Tail_, <<>>}
     end.
+
+
+
+-spec encode(bval()) -> binary().
+encode(Data) ->
+    erlang:iolist_to_binary(lists:reverse(encode_(Data, []))).
+
+-spec encode_(bval(), list(binary())) -> list(binary()).
+encode_(Data, Acc) when is_list(Data) ->
+    encode_list(Data, [<<"l">> | Acc]);
+encode_(Data, Acc) when is_map(Data) ->
+    encode_map(maps:to_list(Data), [<<"d">> | Acc]);
+encode_(Data, Acc) when is_binary(Data) ->
+    encode_string(Data, Acc);
+encode_(Data, Acc) when is_integer(Data) ->
+    encode_integer(Data, Acc).
+
+-spec encode_list(list(bval()), list(binary())) -> list(binary()).
+encode_list([], Acc) ->
+    [<<"e">> | Acc];
+encode_list([H|T], Acc) ->
+    Data = encode(H),
+    encode_list(T, [Data| Acc]).
+
+-spec encode_map(list(tuple(string(), bval())), list(binary())) ->
+                        list(binary()).
+encode_map([], Acc) ->
+    [<<"e">> | Acc];
+encode_map([{Key_, Val_}|T], Acc) ->
+    Key = encode(Key_),
+    Val = encode(Val_),
+    encode_map(T, [Val | [Key | Acc]]).
+
+-spec encode_string(bstr(), list(binary())) -> list(binary()).
+encode_string(Data, Acc) ->
+    Len = integer_to_list(byte_size(Data)),
+    [erlang:iolist_to_binary([Len, <<":">>, Data]) | Acc].
+
+-spec encode_integer(bint(), list(binary())) -> list(binary()).
+encode_integer(Data, Acc) ->
+    [erlang:iolist_to_binary([<<"i">>, integer_to_binary(Data), <<"e">>])
+     | Acc].

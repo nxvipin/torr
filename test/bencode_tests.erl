@@ -28,3 +28,25 @@ decode_dict_test() ->
     ?assertEqual(#{<<"a">> => <<"b">>}, bencode:decode(<<"d1:a1:be">>)),
     ?assertEqual(#{<<"a">> => [#{<<"x">> => <<>>}, <<"yz">>, 256]},
                  bencode:decode(<<"d1:ald1:x0:e2:yzi256eee">>)).
+
+encode_string_test() ->
+    ?assertEqual(<<"0:">>, bencode:encode(<<>>)),
+    ?assertEqual(<<"3:abc">>, bencode:encode(<<"abc">>)).
+
+encode_int_test() ->
+    ?assertEqual(<<"i0e">>, bencode:encode(0)),
+    ?assertEqual(<<"i-1e">>, bencode:encode(-1)).
+
+encode_list_test() ->
+    ?assertEqual(<<"le">>, bencode:encode([])),
+    ?assertEqual(<<"l0:e">>, bencode:encode([<<>>])),
+    ?assertEqual(<<"li0ee">>, bencode:encode([0])),
+    ?assertEqual(<<"llee">>, bencode:encode([[]])),
+    ?assertEqual(<<"llleel0:ee">>, bencode:encode([[[]],[<<>>]])),
+    ?assertEqual(<<"llee">>, bencode:encode([[]])).
+
+encode_dict_test() ->
+    ?assertEqual(<<"de">>, bencode:encode(#{})),
+    ?assertEqual(<<"d1:a1:be">>, bencode:encode(#{<<"a">> => <<"b">>})),
+    ?assertEqual(<<"d1:ald1:x0:e2:yzi256eee">>,
+                 bencode:encode(#{<<"a">> => [#{<<"x">> => <<>>}, <<"yz">>, 256]})).
