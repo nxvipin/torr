@@ -3,16 +3,16 @@
 
 -type bint() :: integer().
 -type bstr() :: binary().
--type blist() :: list(bdecoded()).
--type bdict() :: #{binary() => bdecoded()}.
--type bdecoded() :: bint() | bstr() | blist() | bdict().
+-type blist() :: list(bval()).
+-type bdict() :: #{binary() => bval()}.
+-type bval() :: bint() | bstr() | blist() | bdict().
 
--spec decode(binary()) -> bdecoded().
+-spec decode(binary()) -> bval().
 decode(Data) ->
     {Result, _} = decode_(Data),
     Result.
 
--spec decode_(binary()) -> {bdecoded(), binary()}.
+-spec decode_(binary()) -> {bval(), binary()}.
 decode_(<<$l, Data/binary>>) ->
     decode_list(Data, []);
 
@@ -34,7 +34,7 @@ decode_dict(Data, Acc) ->
     {Value, Tail__} = decode_(Tail_),
     decode_dict(Tail__, maps:put(Key, Value, Acc)).
 
--spec decode_list(binary(), [bdecoded()]) -> {[bdecoded()], binary()}.
+-spec decode_list(binary(), [bval()]) -> {[bval()], binary()}.
 decode_list(<<$e, Data/binary>>, Acc) ->
     {lists:reverse(Acc), Data};
 
